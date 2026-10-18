@@ -114,21 +114,21 @@ def handle_message(event):
       )
 
       prompt = f"""
-            以下是與女友的 LINE 聊天紀錄：
-            {history_text}
+以下是與女友的 LINE 聊天紀錄：
+{history_text}
 
-            請幫我做一個重點摘要，並以條列式回答：
-            1. 她今天的心情與發生的重點事情
-            2. 她是否有需要我回覆或處理的事項
-            3. 建議我等一下主動關心的話題
-            """
+請幫我做一個重點摘要，並以條列式回答：
+1. 她今天的心情與發生的重點事情
+2. 她是否有需要我回覆或處理的事項
+3. 建議我等一下主動關心的話題
+"""
       try:
         response = client.models.generate_content(
             model="gemini-2.5-flash", contents=prompt
         )
         reply_text = response.text
       except Exception as e:
-        reply_text = "生成摘要時發生錯誤，請稍後再試。"
+        reply_text = "生成摘要時發生錯誤請稍後再試。"
 
     with ApiClient(configuration) as api_client:
       line_bot_api = MessagingApi(api_client)
@@ -150,41 +150,42 @@ def handle_message(event):
           for row in recent_history
       ]
   )
-... 
-...   system_instruction = """
-...     你現在是使用者的分身（男友），正在幫忙回覆女友的 LINE 訊息。
-...     語氣要溫柔、貼心、自然，帶有日常口語感，適時加上表情符號（如 😊、❤️）。
-...     防呆機制：如果女友問到非常具體、需要本人親自承諾的私密約定或行程（例如「你今晚幾點來載我？」），請委婉地回答：「寶貝我現在手邊有點忙/在開會，等一下忙完馬上找妳喔～」
-...     """
-... 
-...   prompt = f"""
-...     {system_instruction}
-... 
-...     最近的對話紀錄：
-...     {chat_context}
-... 
-...     請根據以上對話，回覆女友最新的一則訊息："{user_message}"
-...     """
-... 
-...   try:
-...     response = client.models.generate_content(
-...         model="gemini-2.5-flash", contents=prompt
-...     )
-...     bot_reply = response.text.strip()
-...   except Exception as e:
-...     bot_reply = "寶貝我這邊訊號稍微卡了一下，等我一下喔！"
-... 
-...   log_message("bot", bot_reply)
-... 
-...   with ApiClient(configuration) as api_client:
-...     line_bot_api = MessagingApi(api_client)
-...     line_bot_api.reply_message(
-...         ReplyMessageRequest(
-...             reply_token=event.reply_token,
-...             messages=[TextMessage(text=bot_reply)],
-...         )
-...     )
-... 
-... 
-... if __name__ == "__main__":
-...   app.run(port=5000)
+
+  system_instruction = (
+      "你現在是使用者的分身男友，正在幫忙回覆女友的LINE訊息。"
+      "語氣要溫柔貼心自然，帶有日常口語感，適時加上表情符號（如 😊、❤️）。"
+      "防呆機制：如果女友問到非常具體、需要本人親自承諾的私密約定或行程（例如「你今晚幾點來載我？」），"
+      "請委婉地回答：「寶貝我現在手邊有點忙/在開會，等一下忙完馬上找妳喔～」"
+  )
+
+  prompt = f"""
+{system_instruction}
+
+最近的對話紀錄：
+{chat_context}
+
+請根據以上對話，回覆女友最新的一則訊息："{user_message}"
+"""
+
+  try:
+    response = client.models.generate_content(
+        model="gemini-2.5-flash", contents=prompt
+    )
+    bot_reply = response.text.strip()
+  except Exception as e:
+    bot_reply = "寶貝我這邊訊號稍微卡了一下，等我一下喔！"
+
+  log_message("bot", bot_reply)
+
+  with ApiClient(configuration) as api_client:
+    line_bot_api = MessagingApi(api_client)
+    line_bot_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=event.reply_token,
+            messages=[TextMessage(text=bot_reply)],
+        )
+    )
+
+
+if __name__ == "__main__":
+  app.run(port=5000)
