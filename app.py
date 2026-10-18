@@ -107,7 +107,7 @@ def handle_message(event):
       reply_text = "目前還沒有任何聊天紀錄喔！"
     else:
       history_lines = [
-          f"[{row[0]}] {'女友' if row[1]=='girlfriend' else '我(AI)'}: {row[2]}"
+          f"[{row[0]}] {'女友' if row[1]=='girlfriend' else 'AI'}: {row[2]}"
           for row in history
       ]
       reply_text = "\n".join(history_lines)
