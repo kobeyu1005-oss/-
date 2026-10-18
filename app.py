@@ -128,6 +128,7 @@ def handle_message(event):
         )
         reply_text = response.text
       except Exception as e:
+        print("GEMINI SUMMARY ERROR:", e)  # 印出詳細摘要錯誤訊息
         reply_text = "生成摘要時發生錯誤請稍後再試。"
 
     with ApiClient(configuration) as api_client:
@@ -173,6 +174,7 @@ def handle_message(event):
     )
     bot_reply = response.text.strip()
   except Exception as e:
+    print("GEMINI CHAT ERROR:", e)  # 印出詳細聊天錯誤訊息
     bot_reply = "寶貝我這邊訊號稍微卡了一下，等我一下喔！"
 
   log_message("bot", bot_reply)
