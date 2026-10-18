@@ -51,7 +51,7 @@ init_db()
 def log_message(sender, message):
   conn = sqlite3.connect("chat_history.db")
   cursor = conn.cursor()
-  timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+  timestamp = datetime.now().strftime("%H:%M")
   cursor.execute(
       "INSERT INTO messages (timestamp, sender, message) VALUES (?, ?, ?)",
       (timestamp, sender, message),
