@@ -124,11 +124,11 @@ def handle_message(event):
 """
       try:
         response = client.models.generate_content(
-            model="gemini-1.5-flash", contents=prompt
+            model="gemini-2.0-flash", contents=prompt
         )
         reply_text = response.text
       except Exception as e:
-        print("GEMINI SUMMARY ERROR:", e)  # 印出詳細摘要錯誤訊息
+        print("GEMINI SUMMARY ERROR:", e)
         reply_text = "生成摘要時發生錯誤請稍後再試。"
 
     with ApiClient(configuration) as api_client:
@@ -170,11 +170,11 @@ def handle_message(event):
 
   try:
     response = client.models.generate_content(
-        model="gemini-1.5-flash", contents=prompt
+        model="gemini-2.0-flash", contents=prompt
     )
     bot_reply = response.text.strip()
   except Exception as e:
-    print("GEMINI CHAT ERROR:", e)  # 印出詳細聊天錯誤訊息
+    print("GEMINI CHAT ERROR:", e)
     bot_reply = "寶貝我這邊訊號稍微卡了一下，等我一下喔！"
 
   log_message("bot", bot_reply)
