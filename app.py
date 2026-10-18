@@ -124,7 +124,7 @@ def handle_message(event):
 """
       try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash", contents=prompt
+            model="gemini-1.5-flash", contents=prompt
         )
         reply_text = response.text
       except Exception as e:
@@ -169,7 +169,7 @@ def handle_message(event):
 
   try:
     response = client.models.generate_content(
-        model="gemini-2.5-flash", contents=prompt
+        model="gemini-1.5-flash", contents=prompt
     )
     bot_reply = response.text.strip()
   except Exception as e:
