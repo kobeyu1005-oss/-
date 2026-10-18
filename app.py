@@ -72,7 +72,7 @@ def get_recent_history(limit=10):
   return rows[::-1]
 
 
-# 取得所有紀錄以供摘要
+# 取得所有紀錄以供輸出
 def get_all_history():
   conn = sqlite3.connect("chat_history.db")
   cursor = conn.cursor()
@@ -100,36 +100,22 @@ def callback():
 def handle_message(event):
   user_message = event.message.text.strip()
 
-  # 【功能 A：輸入 /summary 取得對話重點摘要】
-  if user_message == "/summary":
+  # 【功能 A：輸入 /all 取得全部聊天記錄】
+  if user_message == "/all":
     history = get_all_history()
     if not history:
-      reply_text = "目前還沒有任何聊天紀錄可以摘要喔！"
+      reply_text = "目前還沒有任何聊天紀錄喔！"
     else:
-      history_text = "\n".join(
-          [
-              f"[{row[0]}] {'女友' if row[1]=='girlfriend' else 'AI分身'}: {row[2]}"
-              for row in history
-          ]
-      )
-
-      prompt = f"""
-以下是與女友的 LINE 聊天紀錄：
-{history_text}
-
-請幫我做一個重點摘要，並以條列式回答：
-1. 她今天的心情與發生的重點事情
-2. 她是否有需要我回覆或處理的事項
-3. 建議我等一下主動關心的話題
-"""
-      try:
-        response = client.models.generate_content(
-            model="gemini-3.8-flash", contents=prompt
+      history_lines = [
+          f"[{row[0]}] {'女友' if row[1]=='girlfriend' else '我(AI)'}: {row[2]}"
+          for row in history
+      ]
+      reply_text = "\n".join(history_lines)
+      if len(reply_text) > 4800:
+        reply_text = (
+            reply_text[-4850:]
+            + "\n...(訊息過長，僅顯示最近的對話記錄)..."
         )
-        reply_text = response.text
-      except Exception as e:
-        print("GEMINI SUMMARY ERROR:", e)
-        reply_text = "生成摘要時發生錯誤請稍後再試。"
 
     with ApiClient(configuration) as api_client:
       line_bot_api = MessagingApi(api_client)
@@ -147,17 +133,36 @@ def handle_message(event):
   recent_history = get_recent_history(limit=10)
   chat_context = "\n".join(
       [
-          f"{'女友' if row[0] == 'girlfriend' else '你(AI分身)'}: {row[1]}"
+          f"{'女友' if row[0] == 'girlfriend' else '你(我)'}: {row[1]}"
           for row in recent_history
       ]
   )
 
-  system_instruction = (
-      "你現在是使用者的分身男友，正在幫忙回覆女友的LINE訊息。"
-      "語氣要溫柔貼心自然，帶有日常口語感，適時加上表情符號（如 😊、❤️）。"
-      "防呆機制：如果女友問到非常具體、需要本人親自承諾的私密約定或行程（例如「你今晚幾點來載我？」），"
-      "請委婉地回答：「寶貝我現在手邊有點忙/在開會，等一下忙完馬上找妳喔～」"
-  )
+  # 帶入從你截圖中學習的說話風格與慣用語（無表情符號、無胖蜜兒）
+  my_style_examples = """
+  [真實對話風格與用詞範例]
+  女友：你罵我胖胖
+  你：那是自動選字啦
+  女友：我討厭你
+  你：好啦笨蛋 秀秀嘛
+  女友：一直好擔心你...我想你
+  你：笨笨笨笨 我愛你 我在陽台唱歌 我等等的行程只有摺衣服跟洗澡上班 看你幾點到家
+  """
+
+  system_instruction = f"""
+你現在是使用者的分身男友，正在幫忙回覆女友的LINE訊息。
+你的任務是**完全模仿使用者的聊天風格、語氣、寵溺稱呼（如笨蛋、笨笨）、用詞習慣**。
+
+重要限制規範：
+1. **絕對不要使用任何表情符號（Emoji）**。
+2. 說話簡短自然、帶有口語感。
+
+以下是使用者平常跟女友對話的真實風格範例：
+{my_style_examples}
+
+防呆機制：如果女友問到非常具體、需要本人親自承諾的私密約定或行程（例如「你今晚幾點來載我？」），
+請用你的語氣與稱呼委婉地回答：「笨蛋我現在手邊有點忙，等一下忙完馬上找妳喔」
+"""
 
   prompt = f"""
 {system_instruction}
@@ -165,7 +170,7 @@ def handle_message(event):
 最近的對話紀錄：
 {chat_context}
 
-請根據以上對話，回覆女友最新的一則訊息："{user_message}"
+請根據以上對話與你的說話風格，回覆女友最新的一則訊息："{user_message}"
 """
 
   try:
@@ -175,7 +180,7 @@ def handle_message(event):
     bot_reply = response.text.strip()
   except Exception as e:
     print("GEMINI CHAT ERROR:", e)
-    bot_reply = "寶貝我這邊訊號稍微卡了一下，等我一下喔！"
+    bot_reply = "笨蛋我這邊訊號稍微卡了一下，等我一下喔"
 
   log_message("bot", bot_reply)
 
